@@ -35,6 +35,7 @@
 - Iteration 2 (2026-11-03): both resolved by the project owner and recorded under
   Clarifications. The answers changed the design from two randomized arms to a single-group,
   within-person pilot (8 participants); constitution amended to v2.0.0 to match.
-- All items pass. FR-002 visual review still depends on the owner's reference images, which are
-  not yet in the repo; this is tracked as a quality gate, not a spec gap.
+- All items pass. Reference images received 2026-11-03. FR-002 and FR-004 were refined to match
+  them (near-black background, violet skin, lime-green powdery coating, fingertip-dominant
+  coverage of 15–25%).
 - Ready for `/speckit-plan` (or `/speckit-clarify` for a further ambiguity pass).

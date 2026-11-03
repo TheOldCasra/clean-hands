@@ -15,7 +15,7 @@ Sync Impact Report
   - TODO(ETHICS_BODY): confirm which approvals apply: ZAHREC (Zanzibar Health Research Ethics
     Committee, at ZAHRI) and the researcher's home institution, plus written permission from
     Barefoot College International Zanzibar.
-  - Reference glow images still to be added under docs/reference/.
+  - Reference glow images: received 2026-11-03, stored in docs/reference/ (git-ignored, licensing).
 -->
 
 # Clean Hands (UV Germ Visualization MVP) Constitution

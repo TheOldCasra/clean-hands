@@ -1,0 +1,4 @@
+# Stock-photo previews: internal reference only, never commit (see README.md)
+*.jpg
+*.jpeg
+*.png

@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-03
 
-**Status**: Clarified, ready for planning
+**Status**: Clarified; planned (see plan.md)
 
 **Input**: User description: "An app that uses the camera to show germs and bacteria on the hands, to
 show users that clear doesn't mean clean. This is an MVP; the goal is to test whether this
@@ -42,11 +42,13 @@ Assumptions for why).
 
 A participant rests her hands under the device, which looks down at them from a stand. She first
 sees her hands as they normally look: clean. A Swahili voice explains that the app will now show,
-as a simulation, what a special lamp can reveal. Then the "UV lamp" switches on: the scene darkens
-to a deep violet, and glowing marks appear on her skin, like a fluorescent tracer under a
-blacklight. Fine specks, smudges, and brighter patches gather around the fingertips and nails,
-thumbs, between the fingers, the back of the hand, and the wrists. The marks stay stuck to her
-hands as they move, turn, and flex. Turning a hand over shows a different pattern on the other
+as a simulation, what a special lamp can reveal. Then the "UV lamp" switches on:
+everything around her hands goes black, her hands turn dark violet, and a glowing green coating
+appears on her skin, like a fluorescent tracer under a blacklight. Bright caps cover her
+fingertips; streaks, flecks, and soft patches sit on the thumbs, between the fingers, on the heel
+and back of the hand, and on the wrists, while the middle of the palm looks almost clean. The
+glow follows the creases of her own skin and stays stuck to her hands as they move, turn, and
+flex. Turning a hand over shows a different pattern on the other
 side. She can switch back and forth between the normal view and the UV view: this is the moment
 "clear doesn't mean clean" lands. An icon with a Swahili label stays on screen to mark it as a
 simulation.
@@ -176,15 +178,23 @@ rehearsal takes at least 20 seconds of active rubbing.
 
 - **FR-001**: System MUST detect one or two hands in the live camera view and confine the glow
   effect to hand and wrist areas.
-- **FR-002**: System MUST render a blacklight look: a darkened, violet-tinted scene with
-  fluorescent marks (bright yellow-green to cyan, with a soft halo) on the hands. The look MUST
-  be reviewed against the owner's reference images before participant use.
+- **FR-002**: System MUST render a blacklight look matching the owner's reference images:
+  - **Background**: near-black around the hands.
+  - **Skin**: the hands appear dark violet, with their natural creases visible.
+  - **Glow**: lime-to-mint green fluorescent coating, powdery and broken by the skin's creases,
+    with little or no halo.
+  - **Review**: the look MUST pass a side-by-side review against the reference images before
+    participant use.
 - **FR-003**: Glow marks MUST be anchored to the hand's anatomy, following movement, rotation,
   and finger flexion.
-- **FR-004**: Glow density MUST be higher in areas commonly missed during handwashing
-  (fingertips and nail areas, thumbs, between the fingers, back of the hand, wrists), with
-  lighter scattered marks elsewhere. Density MUST NOT differ systematically between left and
-  right hands.
+- **FR-004**: Glow MUST be concentrated in areas commonly missed during handwashing, as in the
+  reference images:
+  - **Concentrated areas**: fingertips and nails strongest, then thumbs, between the fingers,
+    the back of the hand, the heel of the hand, and the wrists.
+  - **Palm centre**: mostly clean.
+  - **Overall coverage**: about 15–25% of the visible hand at the start of the reveal.
+  - **Left/right balance**: density MUST NOT differ systematically between left and right
+    hands.
 - **FR-005**: Palm and back of each hand MUST have distinct patterns.
 - **FR-006**: Each participant's pattern MUST be reproducible from a recorded seed and MUST be
   the same in both sessions.
@@ -313,8 +323,9 @@ descriptively.
 - Sessions take place at the Barefoot College International Zanzibar centre, with the device on a
   stand looking down at the hands on a table.
 - Study devices are provided by the researchers. The plan will pick the platform.
-- The owner's reference images of the glow were mentioned but are not yet in the repository; they
-  will be added under `docs/reference/` and used for the FR-002 review.
+- The owner's reference images (UV tracer photos of an open palm and of cupped hands) are in
+  `docs/reference/`, with measured palette and coverage targets. They are watermarked stock
+  previews: an internal style reference only, never shipped or published.
 - Commonly missed areas follow classic hand-hygiene observations (e.g., Taylor, 1978): fingertips,
   thumbs, between the fingers, back of the hand. The six motions follow the WHO handwashing
   technique.

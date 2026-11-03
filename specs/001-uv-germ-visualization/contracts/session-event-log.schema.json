@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "clean-hands/session-event-log/v1",
+  "title": "SessionEvent (one line of a session's JSON Lines log)",
+  "description": "Append-only event log entry. Never contains camera images or personal names (constitution Principle II).",
+  "type": "object",
+  "required": ["sessionId", "seq", "t", "type", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "sessionId": { "type": "string", "format": "uuid" },
+    "seq": { "type": "integer", "minimum": 0 },
+    "t": { "type": "string", "format": "date-time", "description": "ISO 8601 with milliseconds" },
+    "type": {
+      "enum": [
+        "sessionStarted", "consentVerified", "deviceCheck",
+        "stateEntered", "handsDetected", "handsLost",
+        "viewSwitched", "narrationPlayed",
+        "stepStarted", "stepPaused", "stepResumed", "stepCompleted",
+        "faceGuardTriggered", "faceGuardCleared",
+        "qualityLevelChanged", "debriefShown",
+        "sessionEnded"
+      ]
+    },
+    "data": { "type": "object" }
+  },
+  "allOf": [
+    { "if": { "properties": { "type": { "const": "sessionStarted" } } },
+      "then": { "properties": { "data": {
+        "type": "object",
+        "required": ["participantCode", "visit", "facilitatorCode", "cameraSetup", "deviceModel", "osVersion", "appVersion"],
+        "properties": {
+          "participantCode": { "type": "string", "pattern": "^(ZNZ|PIL)-\\d{2}$" },
+          "visit": { "enum": ["session1", "session2"] },
+          "facilitatorCode": { "type": "string", "pattern": "^F\\d{1,2}$" },
+          "cameraSetup": { "enum": ["overheadRear", "mirrorFront"] },
+          "deviceModel": { "type": "string" },
+          "osVersion": { "type": "string" },
+          "appVersion": { "type": "string" }
+        } } } } },
+    { "if": { "properties": { "type": { "const": "deviceCheck" } } },
+      "then": { "properties": { "data": {
+        "type": "object", "required": ["renderFps", "trackingHz"],
+        "properties": { "renderFps": { "type": "number" }, "trackingHz": { "type": "number" } } } } } },
+    { "if": { "properties": { "type": { "const": "stateEntered" } } },
+      "then": { "properties": { "data": {
+        "type": "object", "required": ["state"],
+        "properties": { "state": { "enum": [
+          "consentCheck", "deviceReady", "positioning", "normalView", "uvIntro", "uvReveal",
+          "quickRinseDemo", "rehearsal", "realWashPrompt", "debrief", "paused"
+        ] } } } } } },
+    { "if": { "properties": { "type": { "enum": ["handsDetected", "handsLost"] } } },
+      "then": { "properties": { "data": {
+        "type": "object", "required": ["count"],
+        "properties": { "count": { "type": "integer", "minimum": 0, "maximum": 2 },
+                        "msSinceStateEntered": { "type": "integer", "minimum": 0 } } } } } },
+    { "if": { "properties": { "type": { "const": "viewSwitched" } } },
+      "then": { "properties": { "data": {
+        "type": "object", "required": ["to"],
+        "properties": { "to": { "enum": ["normal", "uv"] } } } } } },
+    { "if": { "properties": { "type": { "const": "narrationPlayed" } } },
+      "then": { "properties": { "data": {
+        "type": "object", "required": ["clipId"],
+        "properties": { "clipId": { "type": "string", "pattern": "^N\\d{2}$" } } } } } },
+    { "if": { "properties": { "type": { "enum": ["stepStarted", "stepPaused", "stepResumed", "stepCompleted"] } } },
+      "then": { "properties": { "data": {
+        "type": "object", "required": ["step"],
+        "properties": { "step": { "type": "integer", "minimum": 1, "maximum": 6 },
+                        "activeSeconds": { "type": "number", "minimum": 0 } } } } } },
+    { "if": { "properties": { "type": { "const": "qualityLevelChanged" } } },
+      "then": { "properties": { "data": {
+        "type": "object", "required": ["level"],
+        "properties": { "level": { "enum": ["high", "medium", "low"] } } } } } },
+    { "if": { "properties": { "type": { "const": "sessionEnded" } } },
+      "then": { "properties": { "data": {
+        "type": "object", "required": ["outcome"],
+        "properties": {
+          "outcome": { "enum": ["completed", "aborted"] },
+          "abortReason": { "enum": ["participantStopped", "facilitatorStopped", "faceGuard", "deviceIssue", "other"] }
+        } } } } }
+  ]
+}
