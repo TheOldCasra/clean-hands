@@ -7,7 +7,7 @@ This guide covers validation only; build details belong in `tasks.md`.
 
 ## Prerequisites
 
-- A Mac with current Xcode, and an Apple Developer Program membership (research R1, R13).
+- A Mac with current Xcode, and an Apple Developer Program membership (confirmed; research R1, R13).
 - At least one iPad running iPadOS 17 or later, ideally the same model as at the centre (R2).
 - Physical setup A (overhead stand) or B (mirror clip), plus a matte dark cloth (R4, R9).
 - Python 3 with `pillow`, `numpy`, and `jsonschema` for the tools.

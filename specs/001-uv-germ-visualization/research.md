@@ -27,8 +27,8 @@ camera view and glow rendering.
 - *Flutter / React Native*: an extra layer between the camera, the ML model, and the GPU, with no
   benefit for an iPad-only study.
 
-**ACTION**: Native requires a Mac with current Xcode and an Apple Developer Program membership
-(for installing on iPads the owner does not physically hold; see R13).
+**Prerequisite (confirmed 2026-11-03)**: the owner has a Mac with Xcode and an Apple Developer
+Program membership. The PWA fallback is not needed.
 
 ---
 
@@ -371,7 +371,7 @@ remotely.
 
 **ACTION**:
 - Verify during the pilot that the TestFlight build launches in Airplane Mode.
-- If the owner has no Mac, switch to the PWA fallback and amend this plan.
+- Mac and developer account confirmed (2026-11-03), so TestFlight is the distribution route.
 
 ---
 
@@ -409,7 +409,7 @@ the participant group or the camera setup).
 ## Open items carried into tasks
 
 1. iPad models and iPadOS versions (R2). Owner/partner.
-2. Mac and Apple Developer Program available? (R1, R13). Owner.
+2. ~~Mac and Apple Developer Program~~: confirmed 2026-11-03 (R1, R13).
 3. Swahili voice, translator, and reviewer nominated (R10). Partner.
 4. ~~Reference glow images~~: received 2026-11-03, stored in `docs/reference/` and measured (R6, R7).
 5. Physical setup A or B chosen in the pilot (R9). Owner with partner.
