@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,7 +31,10 @@
 
 ## Notes
 
-- Iteration 1. Two [NEEDS CLARIFICATION] markers remain (FR-024 participant group, FR-025
-  exposure schedule). Both are scope-level and are waiting on the project owner.
-- FR-002 visual review depends on the owner's reference images, which are not yet in the repo.
-- Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
+- Iteration 1: two [NEEDS CLARIFICATION] markers (participant group, exposure schedule).
+- Iteration 2 (2026-11-03): both resolved by the project owner and recorded under
+  Clarifications. The answers changed the design from two randomized arms to a single-group,
+  within-person pilot (8 participants); constitution amended to v2.0.0 to match.
+- All items pass. FR-002 visual review still depends on the owner's reference images, which are
+  not yet in the repo; this is tracked as a quality gate, not a spec gap.
+- Ready for `/speckit-plan` (or `/speckit-clarify` for a further ambiguity pass).
