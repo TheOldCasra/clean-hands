@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "clips": [
+    {
+      "id": "N01",
+      "file": "N01.m4a",
+      "state": "positioning",
+      "en": "Please place your hands under the screen, with your palms facing up.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N02",
+      "file": "N02.m4a",
+      "state": "positioning (no hands for >2 s)",
+      "en": "Bring your hands a little closer, into the light.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N03",
+      "file": "N03.m4a",
+      "state": "normalView",
+      "en": "These are your hands. They look clean, don't they?",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N04",
+      "file": "N04.m4a",
+      "state": "uvIntro",
+      "en": "Now we will switch on a special lamp. This is a picture made by the tablet, not a real test. It shows what a real lamp can reveal on most people's hands: things our eyes cannot see.",
+      "sw": "",
+      "maxSeconds": 25
+    },
+    {
+      "id": "N05",
+      "file": "N05.m4a",
+      "state": "uvReveal",
+      "en": "Look: under this lamp, the hidden things shine. They gather at the fingertips, thumbs, between the fingers and on the back of the hand.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N06",
+      "file": "N06.m4a",
+      "state": "uvReveal (prompt)",
+      "en": "Turn your hands over and look at the other side.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N07",
+      "file": "N07.m4a",
+      "state": "uvReveal (prompt)",
+      "en": "Touch the eye to see your hands normally, and the lamp to see them again under the light. Clear is not always clean.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N08",
+      "file": "N08.m4a",
+      "state": "quickRinseDemo",
+      "en": "When most people wash quickly, only the middle of the hand gets clean. The rest stays.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N09",
+      "file": "N09.m4a",
+      "state": "rehearsal intro",
+      "en": "Let's practice the six movements that clean the whole hand. Rub your hands together, without water, as you see.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N10",
+      "file": "N10.m4a",
+      "state": "rehearsal step 1",
+      "en": "Palm to palm.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N11",
+      "file": "N11.m4a",
+      "state": "rehearsal step 2",
+      "en": "One palm over the back of the other hand, then change.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N12",
+      "file": "N12.m4a",
+      "state": "rehearsal step 3",
+      "en": "Palm to palm with fingers crossed.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N13",
+      "file": "N13.m4a",
+      "state": "rehearsal step 4",
+      "en": "The backs of the fingers in the other palm.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N14",
+      "file": "N14.m4a",
+      "state": "rehearsal step 5",
+      "en": "Hold each thumb and turn it.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N15",
+      "file": "N15.m4a",
+      "state": "rehearsal step 6",
+      "en": "Rub the fingertips in the other palm.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N16",
+      "file": "N16.m4a",
+      "state": "rehearsal paused",
+      "en": "Keep both hands under the screen.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N17",
+      "file": "N17.m4a",
+      "state": "rehearsal done",
+      "en": "Well done. With these six movements, the whole hand gets clean.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N18",
+      "file": "N18.m4a",
+      "state": "realWashPrompt",
+      "en": "Now let's wash with soap and water, the same way. Soap and water at the important moments help protect you and your family, together with the washing you already do every day.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N19",
+      "file": "N19.m4a",
+      "state": "debrief",
+      "en": "Remember: the glowing marks today were a picture made by the tablet. A real special lamp shows the same thing. Germs hide where we do not see them, and washing with soap, using the six movements, removes them. Thank you.",
+      "sw": "",
+      "maxSeconds": 25
+    },
+    {
+      "id": "N20",
+      "file": "N20.m4a",
+      "state": "aborted",
+      "en": "Thank you. We can stop here.",
+      "sw": "",
+      "maxSeconds": 12
+    },
+    {
+      "id": "N21",
+      "file": "N21.m4a",
+      "state": "face guard",
+      "en": "Only the hands, please. Let's move the tablet a little.",
+      "sw": "",
+      "maxSeconds": 12
+    }
+  ]
+}

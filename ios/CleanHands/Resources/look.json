@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "uvView": {
+    "background": "#000000",
+    "skinRamp": ["#000000", "#1f192f", "#2e2a3a", "#3d3656"],
+    "skinTargetValue": 0.24,
+    "skinLocalContrast": 0.35,
+    "lightPool": { "dilate": 0.15, "blur": 0.25, "falloff": 0.6 },
+    "nailTint": { "color": "#b8b0e0", "strength": 0.15 }
+  },
+  "glow": {
+    "palette": { "low": "#508661", "mid": "#5a7c55", "high": "#8dce7b", "peak": "#80df90" },
+    "hueJitter": 0.08,
+    "grain": { "scale": 0.012, "strength": 0.55 },
+    "skinDetailStrength": 0.45,
+    "bloom": { "radius": 0.006, "intensity": 0.12 },
+    "coverageTarget": { "min": 0.15, "max": 0.25 }
+  },
+  "pattern": {
+    "caps": { "extent": [0.55, 0.9], "brightness": [0.7, 1.0] },
+    "counts": { "streak": 24, "fleck": 220, "patch": 9 },
+    "regionWeights": {
+      "fingertip": 6.0, "thumb": 3.0, "interdigital": 2.5, "backOfHand": 2.0,
+      "palmEdge": 2.0, "wrist": 1.5, "dorsalFinger": 1.5, "palm": 1.0
+    },
+    "leftRightMaxDiff": 0.10,
+    "wristExtent": 0.25
+  },
+  "fade": {
+    "quickRinse": { "palm": 0.3 },
+    "wristPerRehearsal": 0.5,
+    "fadeInMs": 300,
+    "fadeOutMs": 250
+  },
+  "rehearsal": { "stepSeconds": [4, 5, 4, 4, 4, 4], "pauseAfterMs": 1000 },
+  "quality": {
+    "high":   { "countScale": 1.0, "bloomScale": 0.5 },
+    "medium": { "countScale": 0.7, "bloomScale": 0.25 },
+    "low":    { "countScale": 0.45, "bloomScale": 0.0 }
+  }
+}

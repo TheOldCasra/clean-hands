@@ -1,0 +1,106 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Simulation": {
+      "localizations": {
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Uigaji"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "localizations": {
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Simama"
+          }
+        }
+      }
+    },
+    "Next": {
+      "localizations": {
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Endelea"
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Rudi"
+          }
+        }
+      }
+    },
+    "Pause": {
+      "localizations": {
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Sitisha"
+          }
+        }
+      }
+    },
+    "Resume": {
+      "localizations": {
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Endelea tena"
+          }
+        }
+      }
+    },
+    "Replay": {
+      "localizations": {
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Rudia"
+          }
+        }
+      }
+    },
+    "End": {
+      "localizations": {
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Maliza"
+          }
+        }
+      }
+    },
+    "Normal view": {
+      "localizations": {
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mwonekano wa kawaida"
+          }
+        }
+      }
+    },
+    "Lamp view": {
+      "localizations": {
+        "sw": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mwonekano wa taa"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
