@@ -33,7 +33,8 @@ research R6–R7. Colors are sRGB hex.
       "fingertip": 6.0, "thumb": 3.0, "interdigital": 2.5, "backOfHand": 2.0,
       "palmEdge": 2.0, "wrist": 1.5, "dorsalFinger": 1.5, "palm": 1.0
     },
-    "leftRightMaxDiff": 0.10
+    "leftRightMaxDiff": 0.10,
+    "wristExtent": 0.25
   },
   "fade": {
     "quickRinse": { "palm": 0.3 },
@@ -52,7 +53,7 @@ research R6–R7. Colors are sRGB hex.
 
 ## Units
 
-- Distances (`dilate`, `blur`, `radius`, `scale`) are fractions of the hand's `scale`: the
+- Distances (`dilate`, `blur`, `radius`, `scale`, `wristExtent`) are fractions of the hand's `scale`: the
   wrist to middle-finger knuckle distance.
 - Counts are per hand side at quality `high`.
 - `fade.quickRinse.palm` is the multiplier left after the demo (0.3 = 70% faded).

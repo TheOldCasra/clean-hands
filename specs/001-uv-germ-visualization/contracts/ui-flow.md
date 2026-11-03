@@ -49,7 +49,7 @@ R10. The clip ID format is `Nxx` (matches `narrationPlayed.clipId`).
 | rehearsal done | Nearly glow-free hands | N17 | "Well done. With these six movements, the whole hand gets clean." |
 | realWashPrompt | Soap-and-water icon | N18 | "Now let's wash with soap and water, the same way. Soap and water at the important moments help protect you and your family, together with the washing you already do every day." |
 | debrief | Lamp icon, then the hands icon | N19 | "Remember: the glowing marks today were a picture made by the tablet. A real special lamp shows the same thing. Germs hide where we do not see them, and washing with soap, using the six movements, removes them. Thank you." |
-| aborted | Calm screen | N20 | "Thank you. We can stop here." |
+| aborted | Calm screen; camera off at once | N19 then N20 if the session reached uvIntro (FR-021), otherwise N20 | "Thank you. We can stop here." |
 | face guard | Blank screen, hands icon | N21 | "Only the hands, please. Let's move the tablet a little." |
 
 Narration constraints:

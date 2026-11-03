@@ -39,7 +39,7 @@ protection; export via the iPadOS share sheet.
 **Testing**:
 - Unit tests (Swift Testing / XCTest) for pattern generation, anchoring, surface
   classification, the state machine, the logger, and the exporter.
-- A debug-only replay harness on recorded test clips, for gates 1–2.
+- A replay harness on recorded test clips, for gates 1–2 (DEBUG and QA builds only).
 - `tools/measure_glow.py` and a side-by-side review, for gate 3.
 - Export validated against the JSON Schema with Python `jsonschema`.
 - Manual device QA following [quickstart.md](quickstart.md).
@@ -124,7 +124,7 @@ ios/
 │   ├── Audio/          # NarrationPlayer + clip manifest
 │   ├── Study/          # ParticipantStore, EventLogger, Exporter
 │   ├── Facilitator/    # Discreet control strip, settings panel, Device Check
-│   ├── Debug/          # ReplayHarness, TuningPanel (compiled only in DEBUG)
+│   ├── Debug/          # ReplayHarness, TuningPanel, DemoLauncher (DEBUG and QA builds only)
 │   └── Resources/      # look.json, narration-manifest.json, Narration/*.m4a,
 │                       # Localizable.xcstrings (sw, en), Assets.xcassets (icons)
 └── CleanHandsTests/    # Unit tests for Glow, Tracking math, Flow, Study
@@ -153,7 +153,7 @@ the study needs none.
 |---|---|---|
 | `HandTracker` protocol (one adapter now, a second only if needed) | Gate 2 may force a swap to MediaPipe or a custom model (Principle IV) | Hard-coding Vision would make a gate failure a rewrite |
 | Two camera setups (A overhead / B mirror) | Hands-only framing depends on the centre's iPad models and furniture (Principle VII) | A single setup may not fit an unknown model; the cost is one flip flag and one calibration |
-| Debug replay harness + tuning panel | Gates 1–3 need repeatable measurement and look tuning against references | Live-only testing is not repeatable; both are excluded from release builds |
+| Debug replay harness + tuning panel, shipped to the centre as a separate QA app | Gates 1–3 need repeatable measurement and look tuning against references | Live-only testing is not repeatable; both are excluded from the Release (study) build; a `QA` configuration with its own bundle ID lets gates 1–2 run on the centre's iPads via TestFlight |
 | Face guard (a second Vision request at ~2 Hz) | Backup for Principle VII if someone leans into frame | Relying on the setup alone leaves no protection against mistakes |
 | Hand light pool (low-res mask from joints) | References demand a black background with violet hands | Darkening the whole frame would turn a light table violet and lose darker skin against the background |
 

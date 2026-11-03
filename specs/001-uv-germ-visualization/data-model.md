@@ -136,12 +136,13 @@ uvIntro ──▶ uvReveal ◀──(toggle)──▶ normalView2   (view switch
 uvReveal ──(facilitator: next)──▶ quickRinseDemo ──▶ rehearsal[1..6] ──▶ realWashPrompt
 realWashPrompt ──▶ debrief ──▶ ended(completed)
 
-any state ──(participant or facilitator stop)──▶ ended(aborted)
+any state ──(participant or facilitator stop)──▶ ended(aborted)   (debrief N19 first if uvIntro was reached, FR-021)
 any camera state ──(face detected)──▶ paused(faceGuard)
 paused(faceGuard) ──(face gone)──▶ previous state
 rehearsal[n] ──(fewer than 2 hands for more than 1 s)──▶ paused(step n)
 paused(step n) ──(both hands back)──▶ rehearsal[n]
 ```
 
-Every transition writes a `SessionEvent`. The full screen-by-screen contract, with the narration
+Every transition writes a `SessionEvent`. `idle` and `ended` are logged as `sessionStarted` /
+`sessionEnded`, and `normalView2` as `viewSwitched`; every other state is logged as `stateEntered`. The full screen-by-screen contract, with the narration
 clips for each state, is in [contracts/ui-flow.md](contracts/ui-flow.md).

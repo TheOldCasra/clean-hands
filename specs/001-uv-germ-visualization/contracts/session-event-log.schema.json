@@ -45,7 +45,7 @@
       "then": { "properties": { "data": {
         "type": "object", "required": ["state"],
         "properties": { "state": { "enum": [
-          "consentCheck", "deviceReady", "positioning", "normalView", "uvIntro", "uvReveal",
+          "consentCheck", "blocked", "deviceReady", "positioning", "normalView", "uvIntro", "uvReveal",
           "quickRinseDemo", "rehearsal", "realWashPrompt", "debrief", "paused"
         ] } } } } } },
     { "if": { "properties": { "type": { "enum": ["handsDetected", "handsLost"] } } },

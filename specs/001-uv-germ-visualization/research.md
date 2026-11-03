@@ -377,7 +377,8 @@ remotely.
 
 ## R14. Evaluation harness for SC-001 to SC-003 (gates 1 and 2)
 
-**Decision**: a replay mode, compiled only into debug builds. It runs the full tracking and
+**Decision**: a replay mode, compiled only into debug builds and a separate QA app (own bundle ID,
+distributed via TestFlight, never used in sessions), so gates 1–2 can run on the centre's iPads. It runs the full tracking and
 rendering pipeline on test videos imported from Files, and writes metrics: time to first
 detection, detection rate per frame, and pose-script results. Test videos:
 - are recorded with consenting volunteers (team or partner staff, not study participants), using
