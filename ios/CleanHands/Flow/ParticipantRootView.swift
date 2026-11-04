@@ -1,11 +1,11 @@
 import SwiftUI
 
 /// The participant's screen. Layers, bottom to top (002 choreography §7): camera, state prompts,
-/// no-hands guidance, simulation badge, face-guard blank, calm surface, Stop, facilitator strip.
+/// simulation badge, face-guard blank, calm surface, exit. The session advances on its own after
+/// each voiceover; the exit door ends it from any screen (constitution Principle V).
 struct ParticipantRootView: View {
     @Bindable var model: AppModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var pulse = false
 
     var body: some View {
         ZStack {
@@ -18,16 +18,6 @@ struct ParticipantRootView: View {
 
             stateOverlay
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            if model.showNoHandGuidance && model.state.usesCamera {
-                Image(systemName: "hand.raised")
-                    .font(.system(size: 150, weight: .light))
-                    .foregroundStyle(.white.opacity(pulse ? 0.9 : 0.3))
-                    .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: pulse)
-                    .onAppear { pulse = true }
-                    .onDisappear { pulse = false }
-                    .accessibilityHidden(true)
-            }
 
             BadgeLayer(model: model)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -49,30 +39,19 @@ struct ParticipantRootView: View {
                 CalmSurface(model: model)
             }
 
-            if isSessionActive {
-                StopButton(action: model.participantStop)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                    .padding(28)
+            if model.introNeedsFacilitator {
+                FacilitatorNote(
+                    text: "The explanation (N04) did not play. Explain in person that this is a simulation, then continue.",
+                    action: model.next
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .padding(.top, 28)
             }
 
-            if model.state != .idle {
-                VStack(spacing: 8) {
-                    ControlStrip(
-                        isPaused: model.isPaused,
-                        canGoBack: model.canGoBack,
-                        canGoNext: model.canGoNext,
-                        onBack: model.back,
-                        onNext: model.next,
-                        onPause: model.togglePause,
-                        onReplay: model.replayNarration,
-                        onEnd: model.facilitatorEnd
-                    )
-                    if model.introNeedsFacilitator {
-                        FacilitatorNote(text: "The explanation (N04) did not play. Explain in person that this is a simulation, then tap Next.")
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .padding(.top, 12)
+            if isSessionActive {
+                ExitButton(action: model.participantStop)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(24)
             }
         }
         .environment(\.locale, Locale(identifier: "sw"))
@@ -93,7 +72,7 @@ struct ParticipantRootView: View {
         }
     }
 
-    /// Stop is on every screen from session start until the session has ended (FR-007).
+    /// The exit is on every screen from session start until the session has ended (FR-007).
     private var isSessionActive: Bool {
         switch model.state {
         case .idle, .ended: false
@@ -209,42 +188,87 @@ private struct CalmSurface: View {
     }
 }
 
-/// A short instruction for the facilitator, on the facilitator's side of the screen.
+/// A short instruction for the facilitator, with the one action it asks for.
 private struct FacilitatorNote: View {
     let text: String
+    let action: () -> Void
 
     var body: some View {
-        Text(verbatim: text)
-            .font(.callout.weight(.semibold))
-            .foregroundStyle(.white)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color.orange.opacity(0.9)))
-            .frame(maxWidth: 520)
-            .environment(\.locale, .current)
+        VStack(spacing: 10) {
+            Text(verbatim: text)
+                .font(.callout.weight(.semibold))
+                .multilineTextAlignment(.center)
+            Button(action: action) {
+                Text(verbatim: "Continue")
+                    .font(.callout.weight(.bold))
+                    .padding(.horizontal, 20)
+            }
+            .buttonStyle(PressableStyle(highlight: .black.opacity(0.15)))
+            .background(Capsule().fill(.white.opacity(0.25)))
+        }
+        .foregroundStyle(.white)
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.orange.opacity(0.92)))
+        .frame(maxWidth: 520)
+        .environment(\.locale, .current)
     }
 }
 
-/// Facilitator start screen. Registration, consent, and session start arrive with 001 US2.
-struct IdleView: View {
-    @Bindable var model: AppModel
+/// Ends the session from any screen, with no confirmation (Principle V).
+private struct ExitButton: View {
+    let action: () -> Void
 
     var body: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "hands.sparkles")
-                .font(.system(size: 80, weight: .light))
-            Text(verbatim: "Clean Hands")
-                .font(.largeTitle.weight(.semibold))
-            if let error = model.launchError {
-                Text(verbatim: error)
-                    .font(.callout)
-                    .foregroundStyle(.orange)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 520)
+        Button(action: action) {
+            Image(systemName: "door.left.hand.open")
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 64, height: 64)
+                .background(Circle().fill(Color(white: 0.08).opacity(0.85)))
+                .overlay(Circle().strokeBorder(.white.opacity(0.5), lineWidth: 1))
+        }
+        .buttonStyle(PressableStyle(shape: Circle(), minHitSize: 64))
+        .accessibilityLabel(Text(verbatim: "Exit"))
+    }
+}
+
+/// The start screen: the logo and name above one big green start button; everything else sits
+/// behind the settings gear. Registration and consent arrive with 001 US2.
+struct IdleView: View {
+    @Bindable var model: AppModel
+    @State private var showSettings = false
+
+    var body: some View {
+        ZStack {
+            VStack(spacing: 20) {
+                Image(systemName: "hands.sparkles")
+                    .font(.system(size: 80, weight: .light))
+                Text(verbatim: "Clean Hands")
+                    .font(.largeTitle.weight(.semibold))
+                #if DEBUG || QA_TOOLS
+                DemoStartButton(model: model)
+                    .padding(.top, 28)
+                #endif
+                if let error = model.launchError {
+                    Text(verbatim: error)
+                        .font(.callout)
+                        .foregroundStyle(.orange)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 520)
+                }
             }
+
             #if DEBUG || QA_TOOLS
-            DemoLauncher(model: model)
+            Button { showSettings = true } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.85))
+            }
+            .buttonStyle(PressableStyle(shape: Circle(), minHitSize: 56))
+            .accessibilityLabel(Text(verbatim: "Settings"))
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            .padding(24)
+            .sheet(isPresented: $showSettings) { TestSettingsSheet(model: model) }
             #endif
         }
         .foregroundStyle(.white)

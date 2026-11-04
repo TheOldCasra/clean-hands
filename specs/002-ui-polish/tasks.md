@@ -96,7 +96,7 @@ Motion off and on. (Prompt timing is unit tested in T010.)
 
 ### Implementation for User Story 2
 
-- [ ] T026 [P] [US2] Apply `PressableStyle` to the participant Stop control in `ios/CleanHands/Flow/Components/StopButton.swift` (red square kept, 88 pt hit area); in `ios/CleanHands/Flow/ParticipantRootView.swift`, keep Stop above every participant layer, calm surfaces included, on every screen from consentCheck until `ended`, and enabled through every transition (FR-007)
+- [X] T026 [P] [US2] Exit button (door symbol, top corner, `PressableStyle`) replaces the red Stop in `ios/CleanHands/Flow/ParticipantRootView.swift`: above every participant layer, calm surfaces included, on every screen from session start until `ended`, enabled through every transition (FR-007, owner review 2026-11-04)
 - [ ] T027 [US2] Rework `ios/CleanHands/Flow/Screens/UVRevealView.swift`: eye/lamp buttons with `PressableStyle(shape: Circle(), minHitSize: 88)`, the selected one white-filled with a black icon (selection fill with `Motion.quick`), shown from the N07 cue (`PromptSchedule`); the turn-hand prompt is a hand glyph that turns over 180° about the vertical axis once per N06 cue (mirrored cross-fade with Reduce Motion), replacing the circular arrows (research D13)
 - [ ] T028 [US2] Rework `ios/CleanHands/Flow/Screens/PositioningView.swift`: the camera image fades up from black on entry (choreography C6); the arrow sits above the hand outline and nudges down onto it once per N01/N02 cue latched in `PromptSchedule`, both entering with `promptTransition` (research D14)
 - [ ] T029 [P] [US2] Implement `HandsFoundConfirmation` in `ios/CleanHands/Flow/Components/HandsFoundConfirmation.swift`: the outline cross-fades to a filled glyph (white 0.95, never glow green or lamp violet), filled by 0.2 s; it only animates and never controls the flow (FR-010, choreography §4)
@@ -109,7 +109,11 @@ Motion off and on. (Prompt timing is unit tested in T010.)
 
 ---
 
-## Phase 5: User Story 3 - Facilitator controls (Priority: P3)
+## Phase 5: User Story 3 - Facilitator controls (Priority: P3) — removed
+
+**Removed 2026-11-04 by the owner** (spec Clarifications): no facilitator strip, no pause, no
+step indicator, no hold-to-end. T034–T037 are dropped; T038's typography applies to the new start
+screen.
 
 **Goal**: a legible, discreet strip that shows where the session is, with 44 pt targets and
 hold-to-end.

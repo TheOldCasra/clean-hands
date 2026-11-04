@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// The reveal (N05–N07): a turn-hand prompt, and eye / lamp buttons to switch between the normal
-/// view and the UV view at any time (FR-007).
+/// The reveal (N05–N07): a turn-hand prompt, and one lamp button that switches between the normal
+/// view and the UV view at any time (FR-007). The warning light is off in the normal view and lit
+/// in the UV view.
 struct UVRevealView: View {
     var mode: Renderer.ViewMode
     let onShow: (Renderer.ViewMode) -> Void
@@ -15,25 +16,24 @@ struct UVRevealView: View {
                 .padding(.top, 120)
                 .accessibilityHidden(true)
             Spacer()
-            HStack(spacing: 48) {
-                viewButton(.normal, symbol: "eye.fill", label: "Normal view")
-                viewButton(.uv, symbol: "lamp.desk.fill", label: "Lamp view")
-            }
-            .padding(.bottom, 60)
+            lampButton
+                .padding(.bottom, 60)
         }
     }
 
-    private func viewButton(_ target: Renderer.ViewMode, symbol: String, label: LocalizedStringKey) -> some View {
-        let selected = mode == target
-        return Button { onShow(target) } label: {
-            Image(systemName: symbol)
-                .font(.system(size: 44, weight: .semibold))
-                .frame(width: 110, height: 110)
-                .foregroundStyle(selected ? .black : .white)
-                .background(Circle().fill(selected ? .white : .black.opacity(0.55)))
+    private var lampButton: some View {
+        let isOn = mode == .uv
+        return Button { onShow(isOn ? .normal : .uv) } label: {
+            Image(systemName: isOn ? "exclamationmark.warninglight.fill" : "warninglight")
+                .font(.system(size: 52, weight: .semibold))
+                .contentTransition(.symbolEffect(.replace))
+                .foregroundStyle(isOn ? .black : .white)
+                .frame(width: 120, height: 120)
+                .background(Circle().fill(isOn ? .white : .black.opacity(0.55)))
                 .overlay(Circle().stroke(.white.opacity(0.8), lineWidth: 2))
+                .animation(Motion.quick, value: isOn)
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(label))
+        .buttonStyle(PressableStyle(shape: Circle(), minHitSize: 120))
+        .accessibilityLabel(Text(isOn ? "Normal view" : "Lamp view"))
     }
 }

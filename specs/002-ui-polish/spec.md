@@ -22,6 +22,22 @@ consistency, materials, multimodal feedback, reduced motion, typography, design 
 - Q: Should a sound play when the lamp switches on? → A: Yes, one soft, short switch click on the
   same frame the view starts to change, only at switch-on; reviewed by partner staff.
 
+### Session 2026-11-04 (owner review of the MVP)
+
+- Start screen: only the hands logo, the name "Clean Hands", and one large green round start
+  button with a play symbol in the middle; everything else (camera setup, test tools) sits behind
+  a settings gear in the top corner.
+- The extra hand outline that appeared over the positioning hand after a few seconds is removed
+  (the spoken guidance N02 stays).
+- The facilitator strip (play/pause, next, back, replay, end) is removed. The session advances by
+  itself when each voiceover ends; after the reveal narration the participant explores the lamp
+  for 45 s before the session moves on. There is no pause and no reset.
+- The red square Stop is replaced by an exit button with a door symbol in the top corner, on every
+  screen until the session has ended (one tap, no confirmation).
+- The eye and lamp buttons become one lamp button: `warninglight` when the UV view is off,
+  `exclamationmark.warninglight.fill` when it is on.
+- These supersede 001 FR-016 and the facilitator strip in 001's ui-flow contract.
+
 **Builds on**: `001-uv-germ-visualization` (the reveal flow, facilitator strip, and Stop control
 already built in its Setup, Foundational, and US1 phases).
 
@@ -123,7 +139,11 @@ transition and control against the motion rules (FR-005 to FR-011) on a screen r
 
 ---
 
-### User Story 3 - Facilitator controls that are discreet, legible, and forgiving (Priority: P3)
+### User Story 3 - Facilitator controls that are discreet, legible, and forgiving (Priority: P3) — removed
+
+> **Removed 2026-11-04** by the owner: there is no facilitator strip; the flow advances by itself
+> and the exit button ends a session. FR-012 to FR-015 and SC-004 no longer apply. Kept below for
+> the record.
 
 The facilitator glances at the strip and sees, without reading, where the session is. The strip
 stays legible over a moving camera image without drawing the participant's eye. Its buttons are
@@ -224,9 +244,9 @@ visual change, and only at lamp switch-on.
   overshoot or bounce (nothing in this flow is thrown or flicked).
 - **FR-006**: Every control MUST respond visibly on touch-down within one frame and act on
   release; moving off the control before release MUST cancel.
-- **FR-007**: No transition may block input. Stop MUST be visible and working on every screen
-  from session start until the session has ended, including the debrief and every calm screen
-  before the end.
+- **FR-007**: No transition may block input. The exit button (door symbol, top corner) MUST be
+  visible and working on every screen from session start until the session has ended, including
+  the debrief and every calm screen before the end.
 - **FR-008**: Elements MUST enter and leave along the same path; prompts that point somewhere
   (arrow, turn-hand) MUST move in that direction.
 - **FR-009**: The turn-hand prompt and the eye/lamp buttons MUST appear when their narration clip

@@ -58,6 +58,15 @@ final class AppModel {
     /// Whether this session reached the reveal, so an abort still gets the debrief (FR-021).
     @ObservationIgnored private var reachedReveal = false
 
+    /// After the reveal narration (N05–N07) ends, the participant explores the lamp this long
+    /// (unpaused) before the session moves on by itself.
+    static let revealExplorationSeconds: Double = 45
+    /// How long the end screen stays before returning to the start screen.
+    static let endScreenSeconds: Double = 4
+
+    /// Unpaused time at which the reveal narration finished; the exploration window starts here.
+    @ObservationIgnored private var revealNarrationDoneAt: Double?
+
     /// Seed for the demo launcher. Participants get their own seed at registration (US2).
     nonisolated static let demoSeed: UInt64 = 0xC1EA_4A4D_5000_0001
 
@@ -175,6 +184,12 @@ final class AppModel {
         schedule.advance(by: dt, paused: isPaused || state == .idle)
         syncSchedule()
         tryStartLamp()
+        // The session continues by itself once the participant has explored the lamp.
+        if state == .uvReveal || state == .normalView2, let done = revealNarrationDoneAt,
+           schedule.now - done >= Self.revealExplorationSeconds {
+            revealNarrationDoneAt = nil
+            next()
+        }
     }
 
     private func syncSchedule() {
@@ -198,7 +213,19 @@ final class AppModel {
     private func startRevealNarration() {
         guard revealNarrationPending, state == .uvReveal else { return }
         revealNarrationPending = false
-        narration.play(["N05", "N06", "N07"])
+        narration.play(["N05", "N06", "N07"]) { [weak self] _ in
+            guard let self, self.state == .uvReveal || self.state == .normalView2 else { return }
+            self.revealNarrationDoneAt = self.schedule.now
+        }
+    }
+
+    /// Returns to the start screen a few seconds after the end screen's narration.
+    private func returnToStart(after seconds: Double) {
+        let thisVisit = visit
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { [weak self] in
+            guard let self, self.visit == thisVisit, self.state.isEnded else { return }
+            self.machine.reset()
+        }
     }
 
     /// Called by the calm surface once it is fully opaque: the held frame and badge can go.
@@ -372,6 +399,7 @@ final class AppModel {
         case .idle:
             isDemo = false
             reachedReveal = false
+            revealNarrationDoneAt = nil
             holdCameraFrame = false
             badgeUnderCalm = false
             renderer.blank = false
@@ -388,7 +416,15 @@ final class AppModel {
             if previous == .deviceReady || previous == .normalView { narration.play("N01") }
         case .normalView:
             renderer.setView(.normal, animated: false)
-            if previous == .positioning { narration.play("N03") }
+            if previous == .positioning {
+                visit += 1
+                let thisVisit = visit
+                // The session continues by itself when the voiceover ends.
+                narration.play("N03") { [weak self] _ in
+                    guard let self, self.visit == thisVisit, self.state == .normalView else { return }
+                    try? self.machine.transition(to: .uvIntro)
+                }
+            }
         case .uvIntro:
             // The spoken explanation always comes before any glow (FR-004b, Principle I).
             reachedReveal = true
@@ -406,6 +442,8 @@ final class AppModel {
         case .uvReveal:
             guard !resumed else {
                 schedule.resumed()
+                // A pause stopped the narration chain; the exploration window starts now.
+                if !revealNarrationPending, revealNarrationDoneAt == nil { revealNarrationDoneAt = schedule.now }
                 break
             }
             let switchedOn = renderer.setView(.uv, animated: true)
@@ -446,9 +484,14 @@ final class AppModel {
             // Only a face-guard abort starts from black; otherwise the last frame is held.
             if previous == .paused(.faceGuard) { renderer.blank = true }
             // An aborted session still gets the debrief once the reveal has started (FR-021).
-            narration.play(reachedReveal ? ["N19", "N20"] : ["N20"])
+            visit += 1
+            narration.play(reachedReveal ? ["N19", "N20"] : ["N20"]) { [weak self] _ in
+                self?.returnToStart(after: Self.endScreenSeconds)
+            }
         case .ended(.completed):
             stopCamera()
+            visit += 1
+            returnToStart(after: Self.endScreenSeconds)
         default:
             break
         }
