@@ -167,9 +167,9 @@ fragment float2 markFragment(MarkOut in [[stage_in]]) {
 
 struct FinalUniforms {
     float4 transform;   // buffer uv = screen uv × xy + zw
-    float4 flags;       // uv mode (0/1), exposure gain, skin local contrast, skin detail strength
-    float4 bloom;       // radius px, intensity, hue jitter, blank (1 = black screen)
-    float4 texel;       // 1 / buffer size, unused
+    float4 flags;       // uvAmount (0 = camera), exposure gain, skin local contrast, skin detail strength
+    float4 bloom;       // radius px, intensity, hue jitter, blankAmount (1 = black screen)
+    float4 texel;       // 1 / buffer size, lamp channels: room dark, skin (computed on the CPU)
     float4 ramp[4];     // skin ramp, black → dark violet
     float4 palette[4];  // glow palette low → peak
     float4 nail;        // rgb, strength
@@ -190,11 +190,16 @@ fragment float4 finalFragment(FullscreenOut in [[stage_in]],
                               texture2d<float> pool [[texture(1)]],
                               texture2d<float> coverage [[texture(2)]]) {
     constexpr sampler s(address::clamp_to_edge, filter::linear);
-    if (u.bloom.w > 0.5) return float4(0, 0, 0, 1);
+    // Face guard first: black, before any lamp math (002 FR-020).
+    if (u.bloom.w >= 1.0) return float4(0, 0, 0, 1);
+    float keep = 1.0 - u.bloom.w;
 
     float2 uv = in.uv * u.transform.xy + u.transform.zw;
     float3 cam = camera.sample(s, uv).rgb;
-    if (u.flags.x < 0.5) return float4(cam, 1);
+    if (u.flags.x <= 0.0) return float4(cam * keep, 1);
+    // The lamp's channels come from the CPU, so this pass only mixes (002 lamp-transition §3).
+    float dark = u.texel.z;
+    float skinMix = u.texel.w;
 
     // Skin under UV: brightness with a light local contrast, mapped onto the violet ramp.
     const float3 lumaWeights = float3(0.299, 0.587, 0.114);
@@ -207,7 +212,9 @@ fragment float4 finalFragment(FullscreenOut in [[stage_in]],
     float highPass = luma - blur;
     float skinValue = clamp((luma + u.flags.z * 3.0 * highPass) * u.flags.y, 0.0, 1.0);
     float2 lit = pool.sample(s, uv).rg;
-    float3 color = mix(u.background.rgb, rampColor(u.ramp, skinValue), lit.r);
+    float3 outside = mix(cam, u.background.rgb, dark);
+    float3 inside = mix(cam, rampColor(u.ramp, skinValue), skinMix);
+    float3 color = mix(outside, inside, lit.r);
 
     // Glow coating: only crease-scale detail cuts it, clamped so broad patterns such as henna
     // never print into the glow.
@@ -232,7 +239,7 @@ fragment float4 finalFragment(FullscreenOut in [[stage_in]],
     for (int i = 0; i < int(u.tipInfo.x); i++) {
         float4 tip = u.tips[i];
         float falloff = 1.0 - smoothstep(0.0, tip.z, length(p - tip.xy));
-        color += u.nail.rgb * u.nail.w * falloff * tip.w * lit.r;
+        color += u.nail.rgb * u.nail.w * falloff * tip.w * lit.r * skinMix;
     }
-    return float4(color, 1);
+    return float4(color * keep, 1);
 }

@@ -53,6 +53,28 @@ enum Anchoring {
         return joints + [wrist + (wrist - middle) * wristExtent]
     }
 
+    /// Joint-chain distance from the fingertips: tips 0, then 1/3 per joint to the knuckles (1),
+    /// the wrist (2), and the forearm point (2 + `wristExtent`). Pose-independent (002 lamp §5).
+    static func chainDistance(_ joint: Int, wristExtent: Float) -> Float {
+        if joint == Joint.wrist.rawValue { return 2 }
+        if joint == Joint.forearm { return 2 + wristExtent }
+        return Float(4 - (joint - 1) % 4 - 1) / 3
+    }
+
+    /// When a mark lights during the glow spread: 0 at the fingertip front, 1 at the forearm point.
+    static func revealOrder(of mark: GlowMark, wristExtent: Float) -> Float {
+        let d: Float
+        switch mark.anchor {
+        case let .bone(a, b, t, _):
+            let da = chainDistance(a, wristExtent: wristExtent)
+            d = da + (chainDistance(b, wristExtent: wristExtent) - da) * t
+        case let .triangle(a, b, c, u, v, w):
+            d = u * chainDistance(a, wristExtent: wristExtent) + v * chainDistance(b, wristExtent: wristExtent)
+                + w * chainDistance(c, wristExtent: wristExtent)
+        }
+        return min(max(d / (2 + wristExtent), 0), 1)
+    }
+
     static func placement(of mark: GlowMark, joints: [SIMD2<Float>], scale: Float) -> MarkPlacement {
         switch mark.anchor {
         case let .bone(a, b, t, s):

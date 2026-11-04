@@ -51,13 +51,8 @@ final class ReplayHarness {
 
         let pipeline = TrackingPipeline(tracker: VisionHandTracker(), setup: setup)
         let previousPattern = renderer.pattern
-        let previousMode = renderer.mode
         renderer.pattern = pattern
-        renderer.mode = .uv
-        defer {
-            renderer.pattern = previousPattern
-            renderer.mode = previousMode
-        }
+        defer { renderer.pattern = previousPattern }
 
         var frames = 0, withHand = 0, overlays = 0
         var firstHand: Double?
@@ -75,7 +70,7 @@ final class ReplayHarness {
             }
             if time >= nextOverlay {
                 nextOverlay = time + overlayInterval
-                if let image = renderer.renderOffscreen(pixelBuffer: buffer, frame: result.frame),
+                if let image = renderer.renderOffscreen(pixelBuffer: buffer, frame: result.frame, uvAmount: 1),
                    let data = UIImage(cgImage: image).pngData() {
                     try data.write(to: folder.appending(path: String(format: "t%06.2f.png", time)))
                     overlays += 1

@@ -3,33 +3,59 @@ import Observation
 import QuartzCore
 
 /// Owns the camera, tracking, rendering, narration, and session flow, and reacts to each.
+///
+/// `entered(_:from:)` runs inside the state machine's mutation, so it never calls the machine
+/// synchronously; follow-up transitions come from callbacks, timers, or the next tick.
 @MainActor
 @Observable
 final class AppModel {
     private(set) var state: SessionState = .idle
+    private(set) var previousState: SessionState = .idle
     private(set) var handCount = 0
     private(set) var faceVisible = false
     private(set) var glowVisible = false
     private(set) var showNoHandGuidance = false
     private(set) var cameraError: String?
+    /// Why a session could not start (e.g. missing narration clips), for the facilitator.
+    private(set) var launchError: String?
     private(set) var trackingHz: Double = 0
     private(set) var quality: QualityLevel = .high
     private(set) var isDemo = false
+    private(set) var badgeRequired = false
+    /// Keeps the camera view mounted, showing its last frame, under a calm surface fading in.
+    private(set) var holdCameraFrame = false
+    /// Whether the badge stays under that calm surface (it was showing when the camera left).
+    private(set) var badgeUnderCalm = false
+    /// Whether the badge was showing when a pause began, so it stays (or returns) with it.
+    private(set) var badgeThroughPause = false
+    /// The spoken explanation failed: the facilitator explains in person, then taps Next (FR-004b).
+    private(set) var introNeedsFacilitator = false
+    private(set) var visiblePrompts: [PromptSchedule.Prompt] = []
+    private(set) var turnHandHints = 0
+    private(set) var positioningNudges = 0
+    private(set) var studySettings: StudySettings?
     var cameraSetup: CameraSetup = .overheadRear
+    var reduceMotion = false {
+        didSet { renderer.reduceMotion = reduceMotion }
+    }
 
     @ObservationIgnored let renderer: Renderer
     @ObservationIgnored let narration = NarrationPlayer()
     @ObservationIgnored private let camera = CameraService()
     @ObservationIgnored private let pipeline: TrackingPipeline
     @ObservationIgnored private var machine = SessionStateMachine()
+    @ObservationIgnored private var schedule = PromptSchedule()
     @ObservationIgnored private(set) var look: LookConfig
     @ObservationIgnored private var cameraConfigured: CameraSetup?
     @ObservationIgnored private var handsSince: Double?
     @ObservationIgnored private var noHandSince: Double?
     @ObservationIgnored private var lastGuidance: Double = -.infinity
     @ObservationIgnored private var lastFrameTime: Double?
+    @ObservationIgnored private var lastTick: CFTimeInterval?
+    /// Bumped on each uvIntro and uvReveal visit, so a timer from an earlier visit never fires.
+    @ObservationIgnored private var visit = 0
+    @ObservationIgnored private var revealNarrationPending = false
     /// Whether this session reached the reveal, so an abort still gets the debrief (FR-021).
-    /// Kept here because `entered` runs inside the state machine's mutation and must not read it.
     @ObservationIgnored private var reachedReveal = false
 
     /// Seed for the demo launcher. Participants get their own seed at registration (US2).
@@ -45,6 +71,24 @@ final class AppModel {
         machine.onTransition = { [weak self] from, to in self?.entered(to, from: from) }
         renderer.onGlowVisibleChanged = { [weak self] visible in self?.glowVisible = visible }
         renderer.onQualityChanged = { [weak self] level in self?.quality = level }
+        renderer.onBadgeRequiredChanged = { [weak self] required in self?.badgeRequired = required }
+        renderer.onLampSettled = { [weak self] mode in
+            if mode == .uv { self?.startRevealNarration() }
+        }
+        renderer.onSpreadEnded = { [weak self] in
+            self?.schedule.markSpreadEnded()
+            self?.syncSchedule()
+        }
+        narration.onClipPlayed = { [weak self] clip in
+            self?.schedule.clipStarted(clip)
+            self?.syncSchedule()
+        }
+        Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(100))
+                self?.tick()
+            }
+        }
     }
 
     private static func fallbackLook() -> LookConfig {
@@ -63,9 +107,20 @@ final class AppModel {
     /// Starts the reveal flow with the demo seed and no participant record (tasks T047).
     func startDemo() {
         #if DEBUG || QA_TOOLS
+        // A session never starts without every narration clip, above all N04 (FR-004b).
+        let missing = NarrationPlayer.missingClips()
+        guard missing.isEmpty else {
+            launchError = "Missing narration clips: \(missing.joined(separator: ", ")). A session cannot start without them."
+            return
+        }
+        launchError = nil
         isDemo = true
+        studySettings = StudySettings.current()
         renderer.pattern = PatternGenerator.generate(seed: Self.demoSeed, config: look)
         renderer.fade = FadeState(config: look)
+        renderer.resetLamp()
+        schedule.reset()
+        syncSchedule()
         try? machine.transition(to: .deviceReady)
         #endif
     }
@@ -99,6 +154,8 @@ final class AppModel {
         return true
     }
 
+    /// Stops capture. With no new frames the camera view keeps showing its last one, which is
+    /// what a calm surface fades in over (002 FR-024).
     private func stopCamera() {
         camera.setFrameHandler(nil)
         camera.stop()
@@ -107,6 +164,50 @@ final class AppModel {
         pipeline.reset()
         handCount = 0
         faceVisible = false
+    }
+
+    // MARK: - Ticks and schedule
+
+    private func tick() {
+        let now = CACurrentMediaTime()
+        let dt = lastTick.map { now - $0 } ?? 0
+        lastTick = now
+        schedule.advance(by: dt, paused: isPaused || state == .idle)
+        syncSchedule()
+        tryStartLamp()
+    }
+
+    private func syncSchedule() {
+        let prompts = state == .uvReveal || state == .normalView2 ? schedule.visiblePrompts : []
+        if prompts != visiblePrompts { visiblePrompts = prompts }
+        if schedule.turnHandHints != turnHandHints { turnHandHints = schedule.turnHandHints }
+        if schedule.positioningNudges != positioningNudges { positioningNudges = schedule.positioningNudges }
+        let needsFacilitator = state == .uvIntro && schedule.needsFacilitator
+        if needsFacilitator != introNeedsFacilitator { introNeedsFacilitator = needsFacilitator }
+    }
+
+    /// Leaves uvIntro once the explanation has played and the dwell is over, or once the
+    /// facilitator continues after a failed explanation (FR-004b). Never from `entered`.
+    private func tryStartLamp() {
+        guard state == .uvIntro, schedule.lampMayStart else { return }
+        try? machine.transition(to: .uvReveal)
+    }
+
+    /// Starts N05–N07 once the lamp has settled (or 1.0 s after the switch), never sooner than the
+    /// click's deferral allows (002 lamp-transition §7).
+    private func startRevealNarration() {
+        guard revealNarrationPending, state == .uvReveal else { return }
+        revealNarrationPending = false
+        narration.play(["N05", "N06", "N07"])
+    }
+
+    /// Called by the calm surface once it is fully opaque: the held frame and badge can go.
+    func calmSurfaceOpaque() {
+        guard holdCameraFrame else { return }
+        holdCameraFrame = false
+        badgeUnderCalm = false
+        renderer.resetLamp()
+        renderer.blank = false
     }
 
     // MARK: - Tracking results
@@ -167,6 +268,7 @@ final class AppModel {
     var canGoNext: Bool {
         switch state {
         case .positioning, .normalView, .uvReveal, .normalView2, .ended: true
+        case .uvIntro: introNeedsFacilitator
         default: false
         }
     }
@@ -178,10 +280,30 @@ final class AppModel {
 
     var viewMode: Renderer.ViewMode { renderer.mode }
 
+    /// Whether the simulation badge is on screen (FR-003, choreography §5–§7).
+    var badgeVisible: Bool {
+        switch state {
+        case .paused(.faceGuard): false
+        case .uvIntro, .uvReveal, .normalView2: true
+        case .paused: badgeThroughPause || badgeRequired
+        case .debrief, .ended: holdCameraFrame && badgeUnderCalm
+        default: badgeRequired
+        }
+    }
+
+    /// The badge view reports when it is fully opaque; glow waits for it (lamp-transition §6).
+    func setBadgeOpaque(_ opaque: Bool) {
+        renderer.badgeOpaque = opaque
+    }
+
     func next() {
         switch state {
         case .positioning: try? machine.transition(to: .normalView)
         case .normalView: try? machine.transition(to: .uvIntro)
+        case .uvIntro:
+            schedule.facilitatorNext()
+            syncSchedule()
+            tryStartLamp()
         case .uvReveal: try? machine.transition(to: .debrief) // Quick rinse and rehearsal come with US3.
         case .normalView2:
             try? machine.transition(to: .uvReveal)
@@ -232,13 +354,29 @@ final class AppModel {
     // MARK: - State entry
 
     private func entered(_ next: SessionState, from previous: SessionState) {
+        let badgeWasVisible = badgeVisible
+        previousState = previous
         state = next
+        if case .paused = next {
+            badgeThroughPause = badgeWasVisible
+            renderer.frozen = true
+        } else {
+            renderer.frozen = false
+        }
+        let resumed: Bool = {
+            if case .paused = previous { return true }
+            return false
+        }()
+
         switch next {
         case .idle:
             isDemo = false
             reachedReveal = false
-            renderer.mode = .normal
+            holdCameraFrame = false
+            badgeUnderCalm = false
             renderer.blank = false
+            renderer.resetLamp()
+            schedule.reset()
         case .deviceReady:
             Task {
                 if await startCamera() {
@@ -246,29 +384,53 @@ final class AppModel {
                 }
             }
         case .positioning:
-            renderer.mode = .normal
-            renderer.blank = false
+            renderer.setView(.normal, animated: false)
             if previous == .deviceReady || previous == .normalView { narration.play("N01") }
         case .normalView:
-            renderer.mode = .normal
+            renderer.setView(.normal, animated: false)
             if previous == .positioning { narration.play("N03") }
         case .uvIntro:
-            // The spoken explanation always comes before any glow (FR-008, Principle I).
+            // The spoken explanation always comes before any glow (FR-004b, Principle I).
             reachedReveal = true
-            renderer.mode = .normal
-            narration.play("N04") { [weak self] in
-                guard let self, self.state == .uvIntro else { return }
-                try? self.machine.transition(to: .uvReveal)
+            renderer.setView(.normal, animated: false)
+            guard !resumed else { break }
+            visit += 1
+            let thisVisit = visit
+            schedule.enterIntro()
+            narration.play("N04") { [weak self] finished in
+                guard let self, self.visit == thisVisit, self.state == .uvIntro else { return }
+                self.schedule.explanationEnded(normally: finished)
+                self.syncSchedule()
+                self.tryStartLamp()
             }
         case .uvReveal:
-            renderer.mode = .uv
-            if previous == .uvIntro { narration.play(["N05", "N06", "N07"]) }
+            guard !resumed else {
+                schedule.resumed()
+                break
+            }
+            let switchedOn = renderer.setView(.uv, animated: true)
+            if switchedOn {
+                // No clip may start over the lamp switch (FR-016); the click itself comes with US4.
+                narration.deferStarts(until: CACurrentMediaTime() + Motion.lamp.seconds)
+            }
+            schedule.lampSwitched()
+            if previous == .uvIntro {
+                visit += 1
+                let thisVisit = visit
+                revealNarrationPending = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                    guard let self, self.visit == thisVisit else { return }
+                    self.startRevealNarration()
+                }
+            }
         case .normalView2:
-            renderer.mode = .normal
+            guard !resumed else { break }
+            renderer.setView(.normal, animated: true)
         case .debrief:
-            renderer.mode = .normal
+            holdCameraFrame = true
+            badgeUnderCalm = badgeWasVisible
             stopCamera()
-            narration.play("N19") { [weak self] in
+            narration.play("N19") { [weak self] _ in
                 guard let self, self.state == .debrief else { return }
                 try? self.machine.transition(to: .ended(.completed))
             }
@@ -278,8 +440,11 @@ final class AppModel {
         case .paused:
             narration.stop()
         case .ended(.aborted):
+            holdCameraFrame = true
+            badgeUnderCalm = badgeWasVisible
             stopCamera()
-            renderer.blank = true
+            // Only a face-guard abort starts from black; otherwise the last frame is held.
+            if previous == .paused(.faceGuard) { renderer.blank = true }
             // An aborted session still gets the debrief once the reveal has started (FR-021).
             narration.play(reachedReveal ? ["N19", "N20"] : ["N20"])
         case .ended(.completed):
@@ -290,5 +455,6 @@ final class AppModel {
         if case .paused = previous, !next.isEnded, next != .paused(.faceGuard) {
             renderer.blank = false
         }
+        syncSchedule()
     }
 }

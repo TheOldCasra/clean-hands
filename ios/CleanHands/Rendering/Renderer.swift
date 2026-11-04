@@ -66,8 +66,22 @@ final class Renderer: NSObject, MTKViewDelegate {
     private var poolTexture: MTLTexture?
     private var coverageTexture: MTLTexture?
 
-    var mode: ViewMode = .normal
-    var blank = false
+    /// The lamp (002): where the view is between the camera image and the UV look.
+    private(set) var lamp = LampTransition()
+    /// 1 = black. Set at once by the face guard; falls over `Motion.lamp` when cleared.
+    private var blankAmount: Float = 0
+    /// Which view the lamp is heading to. Change it with `setView(_:animated:)`.
+    var mode: ViewMode { lamp.uvTarget == 1 ? .uv : .normal }
+    var blank = false { didSet { if blank { blankAmount = 1 } } }
+    var reduceMotion = false { didSet { lamp.reduceMotion = reduceMotion } }
+    /// Paused or blanked: the lamp and the spread hold where they are.
+    var frozen = false { didSet { lamp.frozen = frozen } }
+    /// Reported by the UI once the simulation badge is fully opaque; glow waits for it.
+    var badgeOpaque = false { didSet { lamp.badgeOpaque = badgeOpaque } }
+    var onBadgeRequiredChanged: ((Bool) -> Void)?
+    var onLampSettled: ((ViewMode) -> Void)?
+    var onSpreadEnded: (() -> Void)?
+    private(set) var badgeRequired = false
     var config: LookConfig { didSet { configChanged() } }
     var pattern: GlowPattern? { didSet { preparePattern() } }
     var fade: FadeState
@@ -83,7 +97,8 @@ final class Renderer: NSObject, MTKViewDelegate {
     private var lastHands: [Int: TrackedHand] = [:]
     private var surfaceAlpha: [Int: Float] = [:]
     private var lastSide: [Int: PatternSide] = [:]
-    private var preparedMarks: [Handedness: [PatternSide: [(mark: GlowMark, ordinal: Int)]]] = [:]
+    private var preparedMarks: [Handedness: [PatternSide: [(mark: GlowMark, ordinal: Int, revealOrder: Float)]]] = [:]
+    private var instancesHaveGlow = false
     private var gain: Float = 1
     private var targetRampPosition: Float = 0.6
     private var lastDraw: CFTimeInterval = 0
@@ -139,6 +154,27 @@ final class Renderer: NSObject, MTKViewDelegate {
         }
     }
 
+    /// Moves the lamp. Returns true when an animated switch-on starts (the click's moment).
+    @discardableResult
+    func setView(_ mode: ViewMode, animated: Bool) -> Bool {
+        let edge = lamp.setTarget(mode == .uv ? 1 : 0, animated: animated)
+        publishLampState()
+        return edge
+    }
+
+    /// Camera image, spread not played: for a new session or a new pattern.
+    func resetLamp() {
+        lamp.reset()
+        publishLampState()
+    }
+
+    private func publishLampState() {
+        if lamp.badgeRequired != badgeRequired {
+            badgeRequired = lamp.badgeRequired
+            onBadgeRequiredChanged?(badgeRequired)
+        }
+    }
+
     func resetHands() {
         frame = .empty
         lastHands = [:]
@@ -152,18 +188,20 @@ final class Renderer: NSObject, MTKViewDelegate {
         fade.fadeOutSeconds = config.fade.fadeOutMs / 1000
         targetRampPosition = Exposure.targetRampPosition(ramp: config.uvView.skinRamp.map(rgb(hex:)),
                                                          targetValue: Float(config.uvView.skinTargetValue))
+        preparePattern() // reveal order depends on the wrist extent
     }
 
     private func preparePattern() {
         preparedMarks = [:]
         guard let pattern else { return }
+        let wristExtent = Float(config.pattern.wristExtent)
         for hand in Handedness.allCases {
             for side in PatternSide.allCases {
                 var ordinals: [MarkKind: Int] = [:]
                 preparedMarks[hand, default: [:]][side] = pattern.marks(hand: hand, side: side).map { mark in
                     let ordinal = ordinals[mark.kind, default: 0]
                     ordinals[mark.kind] = ordinal + 1
-                    return (mark, ordinal)
+                    return (mark, ordinal, Anchoring.revealOrder(of: mark, wristExtent: wristExtent))
                 }
             }
         }
@@ -183,6 +221,8 @@ final class Renderer: NSObject, MTKViewDelegate {
         lastDraw = now
         renderFPS = renderFPS == 0 ? 1 / dt : renderFPS * 0.95 + (1 / dt) * 0.05
         advanceFades(dt: dt)
+        // Before the guard, so the lamp settles even when no camera frame is being drawn.
+        advanceLamp(dt: dt)
 
         guard let drawable = view.currentDrawable,
               let camera = frames.current(),
@@ -204,7 +244,19 @@ final class Renderer: NSObject, MTKViewDelegate {
             Task { @MainActor in self?.recordGPU(seconds: seconds) }
         }
         commandBuffer.commit()
-        updateGlowVisible(hands: hands)
+        updateGlowVisible()
+    }
+
+    private func advanceLamp(dt: Double) {
+        let wasSettled = lamp.settled
+        let wasRevealed = lamp.glowReveal >= 1
+        lamp.step(dt: dt)
+        if !wasSettled, lamp.settled { onLampSettled?(mode) }
+        if !wasRevealed, lamp.glowReveal >= 1 { onSpreadEnded?() }
+        if !blank, blankAmount > 0 {
+            blankAmount = max(0, blankAmount - Float(dt / Motion.lamp.seconds))
+        }
+        publishLampState()
     }
 
     private func recordGPU(seconds: Double) {
@@ -238,8 +290,12 @@ final class Renderer: NSObject, MTKViewDelegate {
         }
     }
 
-    private func updateGlowVisible(hands: [(hand: TrackedHand, presence: Float, surfaceAlpha: Float)]) {
-        let visible = mode == .uv && !blank && pattern != nil && hands.contains { $0.presence * $0.surfaceAlpha > 0.01 }
+    private func updateGlowVisible() {
+        let visible = instancesHaveGlow && blankAmount < 1
+        #if DEBUG || QA_TOOLS
+        // Principle I by construction: glow is drawn only once the badge is opaque (002 FR-003).
+        if visible, !badgeOpaque { assertionFailure("Glow visible without the simulation badge") }
+        #endif
         if visible != glowVisible {
             glowVisible = visible
             onGlowVisibleChanged?(visible)
@@ -264,8 +320,10 @@ final class Renderer: NSObject, MTKViewDelegate {
                         hands: [(hand: TrackedHand, presence: Float, surfaceAlpha: Float)]) {
         ensureTextures(imageSize: imageSize)
         guard let poolTexture, let coverageTexture else { return }
-        let uvMode = mode == .uv && !blank
+        let uvMode = lamp.uvAmount > 0 && blankAmount < 1
+        let channels = LampTransition.channels(lamp.uvAmount, reduceMotion: lamp.reduceMotion)
         let wristExtent = Float(config.pattern.wristExtent)
+        instancesHaveGlow = false
 
         if uvMode {
             // 1. Hand light pool.
@@ -288,7 +346,8 @@ final class Renderer: NSObject, MTKViewDelegate {
             }
 
             // 2. Coverage.
-            let instances = markInstances(hands: hands, wristExtent: wristExtent)
+            let instances = markInstances(hands: hands, wristExtent: wristExtent, gate: channels.gate)
+            instancesHaveGlow = instances.contains { $0.params.x > 0.01 }
             let buffer = instanceBuffers[bufferIndex]
             bufferIndex = (bufferIndex + 1) % instanceBuffers.count
             let count = min(instances.count, maxInstances)
@@ -313,7 +372,7 @@ final class Renderer: NSObject, MTKViewDelegate {
         }
 
         // 3. Final composite.
-        var uniforms = finalUniforms(imageSize: imageSize, targetSize: targetSize, uvMode: uvMode, hands: hands)
+        var uniforms = finalUniforms(imageSize: imageSize, targetSize: targetSize, uvMode: uvMode, channels: channels, hands: hands)
         let pass = MTLRenderPassDescriptor()
         pass.colorAttachments[0].texture = target
         pass.colorAttachments[0].loadAction = .dontCare
@@ -328,8 +387,13 @@ final class Renderer: NSObject, MTKViewDelegate {
         encoder.endEncoding()
     }
 
-    private func markInstances(hands: [(hand: TrackedHand, presence: Float, surfaceAlpha: Float)], wristExtent: Float) -> [MarkInstance] {
+    private func markInstances(hands: [(hand: TrackedHand, presence: Float, surfaceAlpha: Float)], wristExtent: Float,
+                               gate: Float) -> [MarkInstance] {
         var instances: [MarkInstance] = []
+        // Glow through the lamp's gate and the badge interlock (002 lamp-transition §3, §6).
+        let lampGlow = gate * lamp.glowInterlock
+        guard lampGlow > 0 else { return [] }
+        let glowReveal = lamp.glowReveal
         let level = quality.level.config(in: config)
         let counts = config.pattern.counts
         let limits: [MarkKind: Int] = [
@@ -355,10 +419,12 @@ final class Renderer: NSObject, MTKViewDelegate {
             }
             lastSide[hand.id] = side
             let joints = Anchoring.extendedJoints(hand.joints.map(\.position), wristExtent: wristExtent)
-            for (mark, ordinal) in preparedMarks[hand.handedness]?[side] ?? [] where ordinal < limits[mark.kind, default: 0] {
-                let p = Anchoring.placement(of: mark, joints: joints, scale: hand.scale)
-                let intensity = mark.intensity * alpha * fade.multiplier(hand: hand.handedness, side: side, region: mark.region)
+            for (mark, ordinal, revealOrder) in preparedMarks[hand.handedness]?[side] ?? [] where ordinal < limits[mark.kind, default: 0] {
+                let reveal = LampTransition.revealFactor(order: revealOrder, glowReveal: glowReveal)
+                let intensity = mark.intensity * alpha * lampGlow * reveal
+                    * fade.multiplier(hand: hand.handedness, side: side, region: mark.region)
                 guard intensity > 0.001 else { continue }
+                let p = Anchoring.placement(of: mark, joints: joints, scale: hand.scale)
                 instances.append(MarkInstance(
                     centerAxis: SIMD4(p.center.x, p.center.y, p.axis.x, p.axis.y),
                     extent: SIMD4(p.halfLength, p.halfWidth, hand.scale, kindIndex[mark.kind]!),
@@ -371,7 +437,7 @@ final class Renderer: NSObject, MTKViewDelegate {
     }
 
     private func finalUniforms(imageSize: SIMD2<Float>, targetSize: SIMD2<Float>, uvMode: Bool,
-                               hands: [(hand: TrackedHand, presence: Float, surfaceAlpha: Float)]) -> [SIMD4<Float>] {
+                               channels: LampTransition.Channels, hands: [(hand: TrackedHand, presence: Float, surfaceAlpha: Float)]) -> [SIMD4<Float>] {
         // Aspect fill: crop the camera image to the screen's shape.
         let fill = max(targetSize.x / imageSize.x, targetSize.y / imageSize.y)
         let visible = targetSize / (imageSize * fill)
@@ -382,10 +448,11 @@ final class Renderer: NSObject, MTKViewDelegate {
         let meanScale = hands.isEmpty ? 100 : hands.map(\.hand.scale).reduce(0, +) / Float(hands.count)
         var u: [SIMD4<Float>] = []
         u.append(transform)
-        u.append(SIMD4(uvMode ? 1 : 0, gain, Float(look.uvView.skinLocalContrast), Float(look.glow.skinDetailStrength)))
+        // flags.x: uvAmount (0 = camera fast path); texel.zw: room and skin channels; bloom.w: blank.
+        u.append(SIMD4(uvMode ? lamp.uvAmount : 0, gain, Float(look.uvView.skinLocalContrast), Float(look.glow.skinDetailStrength)))
         u.append(SIMD4(Float(look.glow.bloom.radius) * meanScale, Float(look.glow.bloom.intensity * level.bloomScale),
-                       Float(look.glow.hueJitter), blank ? 1 : 0))
-        u.append(SIMD4(1 / imageSize.x, 1 / imageSize.y, 0, 0))
+                       Float(look.glow.hueJitter), blankAmount))
+        u.append(SIMD4(1 / imageSize.x, 1 / imageSize.y, channels.dark, channels.skin))
         let ramp = look.uvView.skinRamp.map(rgb(hex:))
         for i in 0..<4 { u.append(SIMD4(ramp[min(i, ramp.count - 1)], 1)) }
         let palette = [look.glow.palette.low, look.glow.palette.mid, look.glow.palette.high, look.glow.palette.peak].map(rgb(hex:))
@@ -406,8 +473,9 @@ final class Renderer: NSObject, MTKViewDelegate {
 
     // MARK: - Offscreen (replay harness)
 
-    /// Renders one frame as the app would show it in UV view, for the debug replay overlays.
-    func renderOffscreen(pixelBuffer: CVPixelBuffer, frame: HandFrame) -> CGImage? {
+    /// Renders one frame at a fixed lamp value (1 = UV view) with the spread and badge interlock
+    /// complete, for the replay overlays and render tests. Live lamp state is untouched.
+    func renderOffscreen(pixelBuffer: CVPixelBuffer, frame: HandFrame, uvAmount: Float = 1) -> CGImage? {
         guard let cvTexture = frames.makeTexture(pixelBuffer),
               let cameraTexture = CVMetalTextureGetTexture(cvTexture),
               let commandBuffer = queue.makeCommandBuffer() else { return nil }
@@ -422,8 +490,13 @@ final class Renderer: NSObject, MTKViewDelegate {
         for hand in frame.hands where hand.surface != .edgeOn {
             lastSide[hand.id] = hand.surface == .palm ? .palm : .back
         }
+        let liveLamp = lamp, liveBlank = blankAmount
+        lamp = .fixed(uvAmount: uvAmount)
+        blankAmount = 0
         encode(commandBuffer: commandBuffer, target: target, pipeline: offscreenPipeline,
                cameraTexture: cameraTexture, imageSize: size, targetSize: size, hands: hands)
+        lamp = liveLamp
+        blankAmount = liveBlank
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
 

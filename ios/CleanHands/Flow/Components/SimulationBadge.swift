@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Marks the glow as a simulation (FR-008, Principle I): a lamp icon with the Swahili label.
-/// `ParticipantRootView` shows it whenever the renderer reports glow on screen.
+/// Always a solid chip, identical on every iPad and quality level (002 FR-026).
+/// `ParticipantRootView` decides when it shows.
 struct SimulationBadge: View {
     var body: some View {
         HStack(spacing: 10) {
@@ -9,12 +10,13 @@ struct SimulationBadge: View {
                 .font(.system(size: 26, weight: .semibold))
             Text("Simulation")
                 .font(.system(size: 22, weight: .semibold, design: .rounded))
+                .tracking(0.2)
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 18)
         .padding(.vertical, 10)
-        .background(Capsule().fill(.black.opacity(0.6)))
-        .overlay(Capsule().stroke(.white.opacity(0.5), lineWidth: 1))
+        .background(Capsule().fill(Color(white: 0.08)))
+        .overlay(Capsule().strokeBorder(.white, lineWidth: 1))
         .environment(\.locale, Locale(identifier: "sw"))
         .accessibilityElement(children: .combine)
     }
