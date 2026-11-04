@@ -1,106 +1,113 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "Simulation": {
-      "localizations": {
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Uigaji"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Back" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "sw" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Rudi"
           }
         }
       }
     },
-    "Stop": {
-      "localizations": {
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Simama"
+    "End" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "sw" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Maliza"
           }
         }
       }
     },
-    "Next": {
-      "localizations": {
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Endelea"
+    "Lamp view" : {
+      "localizations" : {
+        "sw" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Mwonekano wa taa"
           }
         }
       }
     },
-    "Back": {
-      "localizations": {
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Rudi"
+    "Next" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "sw" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Endelea"
           }
         }
       }
     },
-    "Pause": {
-      "localizations": {
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Sitisha"
+    "Normal view" : {
+      "localizations" : {
+        "sw" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Mwonekano wa kawaida"
           }
         }
       }
     },
-    "Resume": {
-      "localizations": {
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Endelea tena"
+    "Pause" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "sw" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Sitisha"
           }
         }
       }
     },
-    "Replay": {
-      "localizations": {
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Rudia"
+    "Replay" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "sw" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Rudia"
           }
         }
       }
     },
-    "End": {
-      "localizations": {
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Maliza"
+    "Resume" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "sw" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Endelea tena"
           }
         }
       }
     },
-    "Normal view": {
-      "localizations": {
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Mwonekano wa kawaida"
+    "Simulation" : {
+      "localizations" : {
+        "sw" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Uigaji"
           }
         }
       }
     },
-    "Lamp view": {
-      "localizations": {
-        "sw": {
-          "stringUnit": {
-            "state": "needs_review",
-            "value": "Mwonekano wa taa"
+    "Stop" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "sw" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Simama"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

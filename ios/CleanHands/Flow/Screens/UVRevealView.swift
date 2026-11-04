@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The reveal (N05–N07): a turn-hand prompt, and one lamp button that switches between the normal
+/// The reveal (N05–N07): one lamp button that switches between the normal
 /// view and the UV view at any time (FR-007). The warning light is off in the normal view and lit
 /// in the UV view.
 struct UVRevealView: View {
@@ -9,12 +9,6 @@ struct UVRevealView: View {
 
     var body: some View {
         VStack {
-            Image(systemName: "arrow.triangle.2.circlepath")
-                .font(.system(size: 44, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.8))
-                .shadow(color: .black.opacity(0.6), radius: 6)
-                .padding(.top, 120)
-                .accessibilityHidden(true)
             Spacer()
             lampButton
                 .padding(.bottom, 60)

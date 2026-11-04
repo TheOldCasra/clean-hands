@@ -9,8 +9,8 @@ only Swahili, and the facilitator. The states follow [data-model.md](../data-mod
   icon or demonstration. Swahili labels are secondary (FR-014).
 - A large **Stop** control (a red square icon, not a hand) is visible on every screen. Tapping it
   ends the session as `aborted / participantStopped`, with no confirmation dialog.
-- While glow is visible, a simulation badge (a lamp icon plus the Swahili label for "simulation")
-  is always on screen (FR-008).
+- While glow is visible, a simulation label (the Swahili word for "simulation", a small quiet
+  text label since 002's owner review, constitution v2.0.1) is always on screen (FR-008).
 - No shaming or disgust language or imagery (Principle V). Wording is always about "most people",
   never "you" (FR-013).
 

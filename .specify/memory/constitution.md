@@ -1,6 +1,10 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 → 2.0.0 (MAJOR: Principle III redefined)
+- Version change: 2.0.0 → 2.0.1 (PATCH: wording)
+  - I. Truthful Simulation: the simulation indicator is "a Swahili label" (was "icon plus Swahili
+    label"); the owner chose a small text-only label (002 owner review, 2026-11-04). The rule that
+    every glow screen shows it, and the spoken explanation, are unchanged.
+- Previous: 1.0.0 → 2.0.0 (MAJOR: Principle III redefined)
 - Modified principles:
   - III. Research Validity First: comparison is now within-person (baseline vs. app-free period);
     randomized arms no longer required (only 8 participants who share daily program life).
@@ -27,8 +31,8 @@ Sync Impact Report
 The product MUST NOT claim, imply, or let a participant reasonably believe that it detects real
 microbes. A phone camera cannot see bacteria; every glow pattern is a simulation.
 
-- Every screen showing the glow effect MUST carry a visible simulation indicator (icon plus
-  Swahili label), and the first reveal MUST include a spoken explanation.
+- Every screen showing the glow effect MUST carry a visible simulation indicator (a Swahili
+  label), and the first reveal MUST include a spoken explanation.
 - The post-wash view MUST present residual glow as "places most people miss", never as an
   assessment of this participant's actual washing.
 - Any study design that withholds the simulated nature of the effect MUST be approved by the
@@ -148,4 +152,4 @@ respected by it.
 - Compliance review: run /speckit-analyze before /speckit-implement and re-check the Quality
   Gates before the pilot and before the first participant session.
 
-**Version**: 2.0.0 | **Ratified**: 2026-11-03 | **Last Amended**: 2026-11-03
+**Version**: 2.0.1 | **Ratified**: 2026-11-03 | **Last Amended**: 2026-11-04

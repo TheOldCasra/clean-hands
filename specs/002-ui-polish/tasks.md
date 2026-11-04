@@ -8,7 +8,7 @@ description: "Task list for UI polish of the session flow"
 
 **Prerequisites**: plan.md, spec.md, research.md (D1–D18), data-model.md, contracts/
 (lamp-transition, motion-and-surfaces, choreography), quickstart.md (Q1–Q15),
-`.specify/memory/constitution.md` (v2.0.0). Builds on 001 (T001–T053 done).
+`.specify/memory/constitution.md` (v2.0.1). Builds on 001 (T001–T053 done).
 
 **Tests**: Included. plan.md (Testing) asks for unit tests of the lamp integrator and its
 channels, glow reveal order, prompt cues and the spoken-explanation gate, step mapping, the

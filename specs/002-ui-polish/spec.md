@@ -37,6 +37,9 @@ consistency, materials, multimodal feedback, reduced motion, typography, design 
 - The eye and lamp buttons become one lamp button: `warninglight` when the UV view is off,
   `exclamationmark.warninglight.fill` when it is on.
 - These supersede 001 FR-016 and the facilitator strip in 001's ui-flow contract.
+- Second review: the lamp icon on the intro screen becomes an eye in the middle of the screen; the
+  turn-hand prompt is removed; the simulation badge becomes a small, quiet "Uigaji" text label
+  (kept, because Principle I requires a visible simulation indicator).
 
 **Builds on**: `001-uv-germ-visualization` (the reveal flow, facilitator strip, and Stop control
 already built in its Setup, Foundational, and US1 phases).
@@ -297,7 +300,8 @@ visual change, and only at lamp switch-on.
   the profile, and record them with the session. Any deliberate deviation for a participant who
   needs it is recorded, not hidden.
 - **FR-026**: The simulation badge MUST look the same on every study iPad and at every quality
-  level (a solid chip), because it is the Principle I indicator.
+  level, because it is the Principle I indicator. Owner review 2026-11-04: it is a small, quiet
+  text label ("Uigaji", grey with a soft shadow), with no icon or chip.
 
 ### Key Entities
 
