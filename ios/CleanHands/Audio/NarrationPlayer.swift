@@ -40,6 +40,32 @@ final class NarrationPlayer: NSObject, AVAudioPlayerDelegate {
         allClips.filter { bundle.url(forResource: $0, withExtension: "m4a") == nil }
     }
 
+    /// What the bundled narration is, from `narration-manifest.json` (updated by
+    /// `tools/narration.py`): how many clips are Swahili recordings, how many a synthetic Swahili
+    /// voice, and how many lines a native speaker has reviewed.
+    struct Status: Sendable, Equatable {
+        var recorded = 0
+        var synthetic = 0
+        var reviewed = 0
+        var total = 21
+    }
+
+    static func status(in bundle: Bundle = .main) -> Status {
+        struct Manifest: Decodable {
+            struct Clip: Decodable { let recording: String; let swStatus: String }
+            let clips: [Clip]
+        }
+        guard let url = bundle.url(forResource: "narration-manifest", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let manifest = try? JSONDecoder().decode(Manifest.self, from: data) else { return Status() }
+        return Status(
+            recorded: manifest.clips.filter { $0.recording == "swahili" }.count,
+            synthetic: manifest.clips.filter { $0.recording == "swahili-synthetic" }.count,
+            reviewed: manifest.clips.filter { $0.swStatus == "reviewed" }.count,
+            total: manifest.clips.count
+        )
+    }
+
     /// Plays clips one after another, replacing anything playing. `completion` receives true only
     /// if every clip played to its end.
     func play(_ clips: [String], completion: ((Bool) -> Void)? = nil) {

@@ -36,7 +36,7 @@ R10. The clip ID format is `Nxx` (matches `narrationPlayed.clipId`).
 | uvIntro | Lamp icon, simulation badge | N04 | "Now we will switch on a special lamp. This is a picture made by the tablet, not a real test. It shows what a real lamp can reveal on most people's hands: things our eyes cannot see." |
 | uvReveal | Violet scene, glowing marks | N05 | "Look: under this lamp, the hidden things shine. They gather at the fingertips, thumbs, between the fingers and on the back of the hand." |
 | uvReveal (prompt) | Turn-hand icon | N06 | "Turn your hands over and look at the other side." |
-| uvReveal (prompt) | Two buttons: eye icon / lamp icon | N07 | "Touch the eye to see your hands normally, and the lamp to see them again under the light. Clear is not always clean." |
+| uvReveal (prompt) | One light button (off: `warninglight`, on: `exclamationmark.warninglight.fill`) | N07 | "Touch the light button to switch the special lamp off, and touch it again to switch it on. Clear is not always clean." |
 | quickRinseDemo | Palm-center glow fades | N08 | "When most people wash quickly, only the middle of the hand gets clean. The rest stays." |
 | rehearsal intro | Demonstration loop | N09 | "Let's practice the six movements that clean the whole hand. Rub your hands together, without water, as you see." |
 | rehearsal step 1 | Demo: palm to palm | N10 | "Palm to palm." |

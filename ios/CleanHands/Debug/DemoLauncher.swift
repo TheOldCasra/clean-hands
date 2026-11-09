@@ -40,6 +40,26 @@ struct TestSettingsSheet: View {
                     }
                 } header: { Text(verbatim: "Session") }
                 Section {
+                    let voice = NarrationPlayer.status()
+                    LabeledContent {
+                        Text(verbatim: voice.recorded == voice.total ? "Swahili, recorded voice"
+                             : voice.recorded + voice.synthetic == voice.total ? "Swahili, synthetic voice"
+                             : "\(voice.total - voice.recorded - voice.synthetic) of \(voice.total) clips still English")
+                    } label: {
+                        Text(verbatim: "Narration")
+                    }
+                    LabeledContent {
+                        Text(verbatim: "\(voice.reviewed) of \(voice.total) lines reviewed")
+                    } label: {
+                        Text(verbatim: "Swahili text")
+                    }
+                    if voice.reviewed < voice.total || voice.recorded + voice.synthetic < voice.total {
+                        Text(verbatim: "Not for sessions with participants until a native speaker has reviewed every line and partner staff have approved the voice.")
+                            .font(.footnote)
+                            .foregroundStyle(.orange)
+                    }
+                } header: { Text(verbatim: "Voice") }
+                Section {
                     Button { showReplay = true } label: {
                         Label { Text(verbatim: "Replay harness") } icon: { Image(systemName: "film") }
                     }

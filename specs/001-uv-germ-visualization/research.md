@@ -311,6 +311,15 @@ uncertain); on-screen text only (fails FR-014).
 
 **ACTION**: Partner to nominate the voice and the reviewer.
 
+**Amendment (2026-11-09)**: no voice artist is available, so the clips are synthesized offline with
+Meta's open MMS-TTS Swahili model (`facebook/mms-tts-swh`, CC-BY-NC 4.0, non-commercial research
+use) by `tools/synthesize_narration.py`, from the Swahili text in `docs/narration/script.sw.md`.
+Nothing is sent over the network; the same text and seed give the same audio. The voice is
+synthetic and may sound robotic, so the text review (native speaker, back-translation, partner
+sign-off) still applies before any participant session, and partner staff must accept the voice
+itself (quickstart V13). A recorded human voice can replace it at any time with
+`tools/narration.py import`.
+
 ---
 
 ## R11. Study data storage and export

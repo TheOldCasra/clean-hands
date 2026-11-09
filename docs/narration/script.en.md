@@ -17,7 +17,7 @@ development only. Keep one clip per row, in this format.
 | N04 | uvIntro | Now we will switch on a special lamp. This is a picture made by the tablet, not a real test. It shows what a real lamp can reveal on most people's hands: things our eyes cannot see. |
 | N05 | uvReveal | Look: under this lamp, the hidden things shine. They gather at the fingertips, thumbs, between the fingers and on the back of the hand. |
 | N06 | uvReveal (prompt) | Turn your hands over and look at the other side. |
-| N07 | uvReveal (prompt) | Touch the eye to see your hands normally, and the lamp to see them again under the light. Clear is not always clean. |
+| N07 | uvReveal (prompt) | Touch the light button to switch the special lamp off, and touch it again to switch it on. Clear is not always clean. |
 | N08 | quickRinseDemo | When most people wash quickly, only the middle of the hand gets clean. The rest stays. |
 | N09 | rehearsal intro | Let's practice the six movements that clean the whole hand. Rub your hands together, without water, as you see. |
 | N10 | rehearsal step 1 | Palm to palm. |
